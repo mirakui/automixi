@@ -32,7 +32,7 @@ class Mixi
     logger.debug "try to submit: #{@mech.page.uri}"
     form.submit
     logger.debug "status: #{@mech.page.code}"
-    assert_status 200
+    expect_status 200
     form
   end
 
@@ -40,7 +40,7 @@ class Mixi
     logger.debug "try to fetch: #{path}"
     @mech.get "#{MIXI_URL}#{path}"
     logger.debug "status: #{@mech.page.code}"
-    assert_status 200
+    expect_status 200
     @mech.page
   end
 
@@ -49,6 +49,9 @@ class Mixi
     @mech.page.form_with(:name => 'diary') do |f|
       f['diary_title'] = title
       f['diary_body'] = body
+      f.file_upload_with(:name => 'photo1') do |up|
+        up.file_name = '/Users/issei-naruta/Desktop/0.jpg'
+      end
       submit f
     end
     @mech.page.form_with(:action => 'add_diary.pl') do |f|
@@ -56,7 +59,7 @@ class Mixi
     end
   end
 
-  def assert_status(status)
+  def expect_status(status)
     raise "error(#{@mech.page.code}) url: #{@mech.page.uri}" unless @mech.page.code.to_i == status.to_i
   end
 

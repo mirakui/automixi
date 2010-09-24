@@ -61,6 +61,14 @@ class Mixi
     end
   end
 
+  def write_voice(body)
+    get "/recent_voice.pl"
+    @mech.page.form_with(:action => "add_voice.pl") do |f|
+      f['body'] = body
+      submit f
+    end
+  end
+
   def expect_status(status)
     raise "error(#{@mech.page.code}) url: #{@mech.page.uri}" unless @mech.page.code.to_i == status.to_i
   end

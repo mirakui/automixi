@@ -1,4 +1,4 @@
-require 'rubygems'
+# vim:fileencoding=utf-8
 require 'bundler/setup'
 require 'mechanize'
 require 'pit'
@@ -44,13 +44,15 @@ class Mixi
     @mech.page
   end
 
-  def write_diary(title, body)
+  def write_diary(title, body, opts={})
     get "/add_diary.pl?id=#{@user_id}"
     @mech.page.form_with(:name => 'diary') do |f|
       f['diary_title'] = title
       f['diary_body'] = body
-      f.file_upload_with(:name => 'photo1') do |up|
-        up.file_name = '/Users/issei-naruta/Desktop/0.jpg'
+      (opts[:photos] || [])[0..2].each_with_index do |photo, i|
+        f.file_upload_with(:name => "photo#{i+1}") do |up|
+          up.file_name = photo
+        end
       end
       submit f
     end
@@ -72,6 +74,7 @@ class Mixi
   end
 end
 
+__END__
 
 def main
   mixi = Mixi.new

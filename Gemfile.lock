@@ -1,0 +1,23 @@
+GEM
+  remote: http://rubygems.org/
+  specs:
+    columnize (0.3.1)
+    linecache (0.43)
+    mechanize (1.0.0)
+      nokogiri (>= 1.2.1)
+    nokogiri (1.4.3.1)
+    pit (0.0.6)
+    ruby-debug (0.10.3)
+      columnize (>= 0.1)
+      ruby-debug-base (~> 0.10.3.0)
+    ruby-debug-base (0.10.3)
+      linecache (>= 0.3)
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  mechanize (>= 1.0.0)
+  nokogiri
+  pit
+  ruby-debug

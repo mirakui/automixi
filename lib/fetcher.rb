@@ -1,8 +1,7 @@
-require 'rubygems'
+# vim:fileencoding=utf-8
 require 'bundler/setup'
 require 'nokogiri'
 require 'open-uri'
-require 'MeCab'
 
 class Fetcher
 end
@@ -14,7 +13,8 @@ class TwitPicFetcher < Fetcher
     (doc / 'item description').map do |item|
       if item.content =~ /^.*?:\s+(.*)<br>.*href=".+?".*src="(.+?)"/
         puts "base:  #{$1}"
-        h = wakachi $1
+        h = tokenize($1)
+        #h = wakachi $1
         puts "title: #{h[:title]}"
         puts "body:  #{h[:body]}"
         puts "---"
@@ -23,35 +23,25 @@ class TwitPicFetcher < Fetcher
     end
   end
 
-  def wakachi(str)
-    mecab = MeCab::Tagger.new()
-    node = mecab.parseToNode(str)
-    phase = 0
-    title = ''
-    body = ''
-    while node do
-      features = node.feature.split(',')
-      case phase
-      when 1
-        case features[0]
-        when '名詞'
-          title += node.surface
-        when '助詞'
-          title += node.surface
-        else
-          phase += 1
-          body += node.surface
-        end
-      when 2
-        body += node.surface
-      end
-      puts "#{node.surface}\t>>#{node.feature}"
-      node = node.next
-      phase += 1 if phase == 0
-    end
-    {:title => title, :body => body}
+  def tokenize(str)
+    tokenize_regex(str) || {:title => str, :body => str}
   end
 
+  def tokenize_regex(str)
+    sym_default = /[,、.。 　]/
+    sym_ex      = /[？！\?!…]/
+    sym_all    = /(?:#{sym_default}|#{sym_ex})/
+    if str =~ /^(.+?)(#{sym_all}+)(.*)$/
+      title = $1
+      s = $2
+      body = $3
+      return nil unless body.to_s.length > 0
+      title += s if s =~ /#{sym_ex}+/
+      body.gsub!(/#{sym_all}+/, "\\&\n")
+      return {:title => title, :body => body}
+    end
+    return nil
+  end
 end
 
 def main

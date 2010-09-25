@@ -1,5 +1,4 @@
 # vim:fileencoding=utf-8
-require 'bundler/setup'
 require 'uri'
 require 'nokogiri'
 require 'open-uri'

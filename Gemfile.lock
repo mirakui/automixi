@@ -3,14 +3,26 @@ GEM
   specs:
     activesupport (3.0.0)
     archive-tar-minitar (0.5.2)
+    bson (1.0.9)
+    bson_ext (1.0.9)
     columnize (0.3.1)
     diff-lcs (1.1.2)
+    jnunemaker-validatable (1.8.4)
+      activesupport (>= 2.3.4)
     linecache19 (0.5.11)
       ruby_core_source (>= 0.1.4)
     mechanize (1.0.0)
       nokogiri (>= 1.2.1)
+    mongo (1.0.9)
+      bson (>= 1.0.5)
+    mongo_mapper (0.8.4)
+      activesupport (>= 2.3.4)
+      jnunemaker-validatable (~> 1.8.4)
+      plucky (~> 0.3.5)
     nokogiri (1.4.3.1)
     pit (0.0.6)
+    plucky (0.3.5)
+      mongo (~> 1.0.8)
     rspec (2.0.0.beta.22)
       rspec-core (= 2.0.0.beta.22)
       rspec-expectations (= 2.0.0.beta.22)
@@ -37,7 +49,9 @@ PLATFORMS
 
 DEPENDENCIES
   activesupport
+  bson_ext
   mechanize (>= 1.0.0)
+  mongo_mapper
   nokogiri
   pit
   rspec (>= 2.0.0.beta.22)

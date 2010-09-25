@@ -1,8 +1,8 @@
 require 'bundler/setup'
 require 'active_support/dependencies'
 
-class ApplicationConfig
-  ROOT = File.join(File.expand_path(File.dirname(__FILE__)), '..')
-end
+root = Pathname.new(__FILE__).dirname.expand_path.join('..')
 
-ActiveSupport::Dependencies.autoload_paths << File.join(ApplicationConfig::ROOT, 'lib')
+ActiveSupport::Dependencies.autoload_paths << root.join('lib')
+ApplicationConfig.env ||= 'development'
+ApplicationConfig.root = root

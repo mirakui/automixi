@@ -8,20 +8,24 @@ class AutoMixi
 
   def run
     @mixi.login @pit['email'], @pit['password']
-    fetch_all
+    fetch_pipes
   end
 
-  def fetch_all
-    fetch_twitpic
-  end
-
-  def fetch_twitpic
-    log = FetcherLog.first(:name => 'twitpic')
-    last_id = log ? log.last_id : nil
-    entries = Fetcher::Twitpic.fetch :user => 'mirakui', :last_id => last_id
+  def fetch_pipes
+    log = FetcherLog.first(:name => 'pipes')
+    log = nil
+    if log
+      last_id = log.last_id
+    else
+      log = FetcherLog.new(:name => 'pipes')
+      last_id = nil
+    end
+    entries = Fetcher::Pipes.fetch :json_url => "http://pipes.yahoo.com/pipes/pipe.run?_id=96ecead17fb7ae0881e8adf9d7bebe55&_render=json&#{Time.now.to_i}", :last_id => last_id
     entries.each do |entry|
+      p entry
       @mixi.write_diary(entry[:title], entry[:body], :photos => entry[:photos])
-      break
+      log.last_id = entry[:id]
+      log.save
     end
   end
 end

@@ -56,14 +56,20 @@ class Mixi
     @mech.get "#{MIXI_URL}#{path}"
     logger.debug "status: #{@mech.page.code}"
     expect_status 200
+
+    %w(#errorArea .messageAlert).each do |e|
+      error = @mech.page.at(e).presence {|a| a.inner_text.strip}
+      raise MixiError, error if error.present?
+    end
     @mech.page
   end
 
   def write_diary(title, body, opts={})
     get "/add_diary.pl?id=#{@user_id}"
     @mech.page.form_with(:name => 'diary') do |f|
-      f['diary_title'] = title
-      f['diary_body'] = body
+      puts @mech.page.body unless f
+      f['diary_title'] = normalize(title)
+      f['diary_body'] = normalize(body)
       (opts[:photos] || [])[0..2].each_with_index do |photo, i|
         photo = uri_to_tempfile(photo) if photo.is_a?(URI)
         f.file_upload_with(:name => "photo#{i+1}") do |up|
@@ -72,14 +78,8 @@ class Mixi
       end
       submit f
     end
-    error = @mech.page.at("#errorArea").presence {|a| a.inner_text.strip}
-    if error
-      logger.error error if error
-      raise MixiError, error
-    else
-      @mech.page.form_with(:action => 'add_diary.pl') do |f|
-        submit f
-      end
+    @mech.page.form_with(:action => 'add_diary.pl') do |f|
+      submit f
     end
   end
 
@@ -93,6 +93,26 @@ class Mixi
 
   def expect_status(status)
     raise "error(#{@mech.page.code}) url: #{@mech.page.uri}" unless @mech.page.code.to_i == status.to_i
+  end
+
+  def coder
+    @coder ||= HTMLEntities.new
+  end
+
+  def encode(str)
+    coder.encode(str, :decimal)
+  end
+
+  def decode(str)
+    coder.decode(str)
+  end
+
+  def normalize(str)
+    str = decode(str)
+    str.encode("euc-jp")
+    str
+  rescue
+    encode(encode(encode(str)))
   end
 
   def logger

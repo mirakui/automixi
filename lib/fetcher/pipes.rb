@@ -3,24 +3,26 @@ require 'uri'
 require 'open-uri'
 require 'json'
 require 'active_support/core_ext/object/blank'
+require 'htmlentities'
 
 include Util
 
 class Fetcher
   class Pipes
     def self.fetch(opts={})
-      url = "http://pipes.yahoo.com/pipes/pipe.run?_id=96ecead17fb7ae0881e8adf9d7bebe55&_render=json"
-      json = JSON.parse open(url).read
+      json = JSON.parse open(opts[:json_url]).read
       json["value"]["items"].map do |item|
         t = {
           :title => item["title"],
           :body => item["description"],
           :id => item["guid"]
         }
-        if t[:title] == t[:body]
-          t.merge tokenize(t[:body])
+        if t[:title] == t[:body] || t[:title].blank? || t[:body].blank?
+          str = t[:title].presence || t[:body].presence
+          t.merge! tokenize(str)
         end
-        t[:photos] = json["media:content"].presence{|m| [m["url"]]}
+        photo_url = item["media:content"].presence{|m| m["url"]}
+        t["photos"] = [URI.parse(photo_url)] if photo_url =~ /\.jpg/
         t
       end.take_while {|item| item[:id] != opts[:last_id]}.reverse
     end
@@ -30,7 +32,7 @@ class Fetcher
     end
 
     def self.tokenize_regex(str)
-      sym_default = /[,、.。 　]/
+      sym_default = /[,、.。\s　]/
       sym_ex      = /[？！\?!…]/
       sym_all    = /(?:#{sym_default}|#{sym_ex})/
       if str =~ /^(.+?)(#{sym_all}+)(.*)$/

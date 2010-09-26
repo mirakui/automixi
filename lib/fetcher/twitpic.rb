@@ -3,7 +3,7 @@ require 'uri'
 require 'nokogiri'
 require 'open-uri'
 
-module Fetcher
+class Fetcher
   class Twitpic
     def self.fetch(opts={})
       feed_uri = "http://twitpic.com/photos/#{opts[:user]||'mirakui'}/feed.rss"

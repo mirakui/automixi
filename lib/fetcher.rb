@@ -1,2 +1,2 @@
 # vim:fileencoding=utf-8
-require 'fetcher/twitpic'
+require ApplicationConfig.root.join('lib/fetcher/twitpic')

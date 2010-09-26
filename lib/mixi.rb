@@ -4,6 +4,21 @@ require 'mechanize'
 require 'pit'
 require 'ruby-debug'
 require 'logger'
+require 'tempfile'
+require 'open-uri'
+
+include Util
+
+class Mechanize
+  class Form
+    alias _orig_param_to_multipart param_to_multipart
+    def param_to_multipart(name, value)
+      _orig_param_to_multipart(name, value).force_encoding("ascii-8bit")
+    end
+  end
+end
+
+class MixiError < Exception; end
 
 class Mixi
   MIXI_URL = 'http://mixi.jp'
@@ -50,14 +65,21 @@ class Mixi
       f['diary_title'] = title
       f['diary_body'] = body
       (opts[:photos] || [])[0..2].each_with_index do |photo, i|
+        photo = uri_to_tempfile(photo) if photo.is_a?(URI)
         f.file_upload_with(:name => "photo#{i+1}") do |up|
           up.file_name = photo
         end
       end
       submit f
     end
-    @mech.page.form_with(:action => 'add_diary.pl') do |f|
-      submit f
+    error = @mech.page.at("#errorArea").presence {|a| a.inner_text.strip}
+    if error
+      logger.error error if error
+      raise MixiError, error
+    else
+      @mech.page.form_with(:action => 'add_diary.pl') do |f|
+        submit f
+      end
     end
   end
 
@@ -79,6 +101,15 @@ class Mixi
 
   def logger=(l)
     @logger = l
+  end
+
+  def uri_to_tempfile(uri)
+    tempfile_path = ApplicationConfig.root.join("tmp", uri.path.split("/").last)
+    open(tempfile_path, "w") do |f|
+      f.write uri.read
+    end
+    logger.debug "download #{uri} to #{tempfile_path}"
+    tempfile_path.to_s
   end
 end
 
